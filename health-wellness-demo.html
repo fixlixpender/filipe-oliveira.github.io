@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulated booking system for a physiotherapy clinic. Demonstrates local data persistence (Local Storage) and complex UI logic.">
+    <title>Health & Wellness Solution | Booking Demo</title>
+    
+    <style>
+        /* --- CSS VARIABLES & RESET (Matching Portfolio Style) --- */
+        :root {
+            --primary-blue: #0f172a;    /* Deep professional navy */
+            --accent-blue: #3b82f6;     /* Bright action blue */
+            --accent-green: #10b981;    /* Success green */
+            --bg-light: #f8fafc;        /* Off-white background */
+            --text-main: #334155;       /* Dark slate text */
+            --text-light: #64748b;      /* Muted text */
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+            --header-height: 70px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        
+        /* --- UTILITIES & LAYOUT --- */
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .section-padding { padding: 4rem 0; }
+        .text-center { text-align: center; }
+
+        /* --- HEADER (Copied from Portfolio) --- */
+        .header {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 1px 10px rgba(0,0,0,0.05);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+        }
+        .header__container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: var(--transition);
+            background-color: var(--accent-blue);
+            color: var(--white);
+        }
+
+        /* --- DEMO SPECIFIC STYLES --- */
+        .demo-intro {
+            background-color: var(--white);
+            padding: 3rem 0;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+
+        .demo-intro h1 {
+            font-size: 2.2rem;
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+        }
+        .demo-intro p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+        }
+        
+        /* Message Bar */
+        .message-bar {
+            background-color: #fef3c7; /* Light warning yellow */
+            color: #b45309; /* Dark brown text */
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-bottom: 2rem;
+            font-weight: 600;
+            border: 1px solid #fcd34d;
+        }
+
+        /* Booking Grid */
+        .booking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .timeslot {
+            background-color: var(--accent-green);
+            color: var(--white);
+            padding: 1rem 0.5rem;
+            border-radius: var(--radius);
+            text-align: center;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+        }
+
+        .timeslot:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
+        
+        /* Unavailable Slot Style */
+        .timeslot.unavailable {
+            background-color: #ef4444; /* Red color */
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+            text-decoration: line-through;
+            border-color: #b91c1c;
+        }
+
+        .timeslot.unavailable:hover {
+            opacity: 0.6;
+            transform: none;
+        }
+
+        /* Booking Confirmation Modal */
+        #confirmation-message {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: var(--bg-light);
+            border-radius: var(--radius);
+            border: 1px solid var(--accent-green);
+            display: none;
+        }
+        
+        .confirmation-text {
+            color: var(--accent-green);
+            font-weight: 700;
+        }
+
+        /* Reset Button */
+        #reset-storage {
+            background-color: #f1f5f9;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 2rem;
+            display: inline-block;
+        }
+        
+        #reset-storage:hover {
+            background-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header__container">
+            <a href="index.html" class="brand">Filipe-Dev</a>
+            <a href="index.html#portfolio" class="btn">Back to Portfolio</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="demo-intro">
+            <div class="container text-center">
+                <h1>Health & Wellness Solution Demo</h1>
+                <p>
+                    **Simulated Booking System:** This demonstrates database-like functionality using JavaScript and Local Storage.
+                    **Bookings persist** even if you refresh the page.
+                </p>
+            </div>
+        </section>
+
+        <section class="section-padding" style="padding-top: 0;">
+            <div class="container">
+                
+                <div class="message-bar">
+                    <p>
+                        💡 **DEMO INSTRUCTIONS:** Click any green time slot to "book" it. The slot will turn red and will remain reserved until you click the 'Reset Demo' button below.
+                    </p>
+                </div>
+
+                <h2>Book Your Appointment (Tuesday, 14th Dec)</h2>
+
+                <div class="booking-grid" id="booking-grid">
+                    </div>
+
+                <div id="confirmation-message">
+                    <p class="confirmation-text">Booking Confirmed! This slot is now reserved.</p>
+                </div>
+                
+                <button id="reset-storage">Reset Demo Bookings</button>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const STORAGE_KEY = 'healthWellnessBookings';
+            const grid = document.getElementById('booking-grid');
+            const confirmationMessage = document.getElementById('confirmation-message');
+            const resetButton = document.getElementById('reset-storage');
+
+            // Define the available time slots
+            const timeSlots = [
+                '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+                '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
+            ];
+
+            // --- 1. Load Data from Local Storage ---
+            const loadBookings = () => {
+                const storedData = localStorage.getItem(STORAGE_KEY);
+                return storedData ? JSON.parse(storedData) : [];
+            };
+
+            let currentBookings = loadBookings();
+
+            // --- 2. Save Data to Local Storage ---
+            const saveBookings = (bookings) => {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(bookings));
+                currentBookings = bookings; // Update in-memory array
+            };
+
+            // --- 3. Render the UI ---
+            const renderGrid = () => {
+                grid.innerHTML = ''; // Clear existing slots
+                confirmationMessage.style.display = 'none';
+
+                timeSlots.forEach(slot => {
+                    const isBooked = currentBookings.includes(slot);
+                    
+                    const slotElement = document.createElement('div');
+                    slotElement.classList.add('timeslot');
+                    slotElement.textContent = slot;
+                    
+                    if (isBooked) {
+                        slotElement.classList.add('unavailable');
+                    } else {
+                        // Attach the booking function only to available slots
+                        slotElement.addEventListener('click', () => handleBooking(slot));
+                    }
+                    
+                    grid.appendChild(slotElement);
+                });
+            };
+
+            // --- 4. Booking Logic ---
+            const handleBooking = (slot) => {
+                if (currentBookings.includes(slot)) return; // Already booked
+
+                const updatedBookings = [...currentBookings, slot];
+                saveBookings(updatedBookings); // Save to Local Storage
+                renderGrid(); // Rerender UI to show new booking
+                
+                // Show confirmation message
+                confirmationMessage.style.display = 'block';
+                setTimeout(() => {
+                    confirmationMessage.style.display = 'none';
+                }, 3000);
+            };
+            
+            // --- 5. Reset Function (for Demo purposes) ---
+            resetButton.addEventListener('click', () => {
+                if(confirm("Are you sure you want to reset all demo bookings?")) {
+                    saveBookings([]); // Clear array
+                    renderGrid(); // Rerender
+                    alert("Demo reset successful. All slots are now available.");
+                }
+            });
+
+            // Initial render when the page loads
+            renderGrid();
+        });
+    </script>
+</body>
+</html>
