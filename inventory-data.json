@@ -1,0 +1,66 @@
+[
+  {
+    "id": "SKU-49103",
+    "name": "Luxury Silk Pillowcase Set",
+    "category": "Home Goods",
+    "stock_level": 450,
+    "price": 59.99,
+    "last_updated": "2023-12-07"
+  },
+  {
+    "id": "SKU-82745",
+    "name": "Ergonomic Mechanical Keyboard (TKL)",
+    "category": "Electronics",
+    "stock_level": 82,
+    "price": 129.50,
+    "last_updated": "2023-12-09"
+  },
+  {
+    "id": "SKU-11209",
+    "name": "Advanced Coffee Bean Grinder",
+    "category": "Kitchenware",
+    "stock_level": 15,
+    "price": 75.00,
+    "last_updated": "2023-12-08"
+  },
+  {
+    "id": "SKU-60031",
+    "name": "Premium Leather Laptop Bag (15-inch)",
+    "category": "Accessories",
+    "stock_level": 210,
+    "price": 149.99,
+    "last_updated": "2023-12-09"
+  },
+  {
+    "id": "SKU-33567",
+    "name": "High-Density Foam Roller (Black)",
+    "category": "Fitness",
+    "stock_level": 60,
+    "price": 24.95,
+    "last_updated": "2023-12-06"
+  },
+  {
+    "id": "SKU-99801",
+    "name": "Wireless Noise Cancelling Headphones",
+    "category": "Electronics",
+    "stock_level": 12,
+    "price": 199.00,
+    "last_updated": "2023-12-09"
+  },
+  {
+    "id": "SKU-05432",
+    "name": "Scented Candle Set (Vanilla & Lavender)",
+    "category": "Home Goods",
+    "stock_level": 300,
+    "price": 35.00,
+    "last_updated": "2023-12-05"
+  },
+  {
+    "id": "SKU-77007",
+    "name": "Digital Drawing Tablet (Small)",
+    "category": "Electronics",
+    "stock_level": 48,
+    "price": 89.99,
+    "last_updated": "2023-12-08"
+  }
+]

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Simulated E-Commerce Inventory Dashboard. Demonstrates API integration (JSON fetch), filtering, and sorting of dynamic data.">
+    <title>E-Commerce Dashboard Demo | Filipe-Dev</title>
+    
+    <style>
+        /* --- CSS VARIABLES & RESET (Matching Portfolio Style) --- */
+        :root {
+            --primary-blue: #0f172a;    /* Deep professional navy */
+            --accent-blue: #3b82f6;     /* Bright action blue */
+            --accent-green: #10b981;    /* Success green */
+            --bg-light: #f8fafc;        /* Off-white background */
+            --text-main: #334155;       /* Dark slate text */
+            --text-light: #64748b;      /* Muted text */
+            --white: #ffffff;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 8px;
+            --transition: all 0.3s ease;
+            --header-height: 70px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            padding-top: var(--header-height);
+            min-height: 100vh;
+        }
+
+        a { text-decoration: none; color: inherit; }
+        
+        /* --- UTILITIES & LAYOUT --- */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .section-padding { padding: 4rem 0; }
+
+        /* --- HEADER (Copied from Portfolio) --- */
+        .header {
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 1px 10px rgba(0,0,0,0.05);
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+        }
+        .header__container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-blue);
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: var(--transition);
+            background-color: var(--accent-blue);
+            color: var(--white);
+        }
+
+        /* --- DASHBOARD SPECIFIC STYLES --- */
+        .dashboard-header {
+            background-color: var(--white);
+            padding: 3rem 0 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 2rem;
+        }
+        .dashboard-header h1 {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 0.5rem;
+        }
+        .dashboard-header p {
+            color: var(--text-light);
+        }
+        
+        /* Controls (Search/Filter) */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-top: 3px solid var(--accent-blue);
+        }
+        @media (min-width: 768px) {
+            .controls {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        #search-input {
+            padding: 0.8rem;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius);
+            font-size: 1rem;
+            width: 100%;
+        }
+        @media (min-width: 768px) {
+            #search-input { width: 400px; }
+        }
+
+        /* Table Styling */
+        .inventory-table-wrapper {
+            overflow-x: auto;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1rem;
+        }
+
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        .inventory-table th {
+            padding: 1rem 0.8rem;
+            background-color: #e2e8f0; /* Light grey header */
+            color: var(--primary-blue);
+            font-weight: 700;
+            cursor: pointer;
+            border-bottom: 2px solid var(--primary-blue);
+            transition: background-color 0.2s;
+        }
+        
+        .inventory-table th:hover {
+            background-color: #cbd5e1;
+        }
+
+        .inventory-table td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .inventory-table tr:hover {
+            background-color: #f1f5f9;
+        }
+
+        /* Stock Level Badges */
+        .stock-level {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .stock-high { background-color: #d1fae5; color: var(--accent-green); } /* Green for high stock */
+        .stock-medium { background-color: #fef3c7; color: #f59e0b; } /* Yellow for medium */
+        .stock-low { background-color: #fee2e2; color: #ef4444; } /* Red for low stock */
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container header__container">
+            <a href="index.html" class="brand">Filipe-Dev</a>
+            <a href="index.html#portfolio" class="btn">Back to Portfolio</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="dashboard-header">
+            <div class="container">
+                <h1>Custom Inventory Dashboard</h1>
+                <p>
+                    **API Integration Demo:** Data loaded using the <code>fetch()</code> API from <code>inventory-data.json</code>.
+                    Demonstrates ability to handle, filter, and sort large datasets.
+                </p>
+            </div>
+        </section>
+
+        <section class="section-padding" style="padding-top: 0;">
+            <div class="container">
+                
+                <div class="controls">
+                    <input type="text" id="search-input" placeholder="Search by name or SKU...">
+                    <div id="stats">
+                        Total Products: <strong id="total-count">0</strong>
+                    </div>
+                </div>
+
+                <div class="inventory-table-wrapper">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th data-sort-by="id">SKU ID</th>
+                                <th data-sort-by="name">Product Name</th>
+                                <th data-sort-by="category">Category</th>
+                                <th data-sort-by="stock_level">Stock Level</th>
+                                <th data-sort-by="price">Price</th>
+                                <th data-sort-by="last_updated">Last Updated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-data">
+                            <tr><td colspan="6" style="text-align: center;">Loading inventory data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const DATA_URL = 'inventory-data.json';
+            const tableBody = document.getElementById('inventory-data');
+            const searchInput = document.getElementById('search-input');
+            const totalCountElement = document.getElementById('total-count');
+            const tableHeaders = document.querySelectorAll('th[data-sort-by]');
+            
+            let inventoryData = [];
+            let currentSort = { column: 'id', direction: 'asc' };
+
+            // --- 1. Fetch Data (Simulating API Call) ---
+            const fetchInventory = async () => {
+                try {
+                    const response = await fetch(DATA_URL);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    inventoryData = await response.json();
+                    totalCountElement.textContent = inventoryData.length;
+                    
+                    // Initial render
+                    renderTable(inventoryData);
+                } catch (error) {
+                    console.error('Could not fetch inventory data:', error);
+                    tableBody.innerHTML = `<tr><td colspan="6" style="color: #ef4444; text-align: center;">Error loading data from ${DATA_URL}</td></tr>`;
+                }
+            };
+            
+            // --- 2. Render Table Rows ---
+            const renderTable = (data) => {
+                if (data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No matching products found.</td></tr>';
+                    return;
+                }
+                
+                const html = data.map(item => {
+                    const stockClass = item.stock_level > 200 ? 'stock-high' : item.stock_level > 50 ? 'stock-medium' : 'stock-low';
+                    const priceFormatted = new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(item.price);
+
+                    return `
+                        <tr>
+                            <td>${item.id}</td>
+                            <td>${item.name}</td>
+                            <td>${item.category}</td>
+                            <td><span class="stock-level ${stockClass}">${item.stock_level}</span></td>
+                            <td>${priceFormatted}</td>
+                            <td>${item.last_updated}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                tableBody.innerHTML = html;
+            };
+
+            // --- 3. Filtering/Search Logic ---
+            const filterData = (query) => {
+                const lowerCaseQuery = query.toLowerCase();
+                const filtered = inventoryData.filter(item => 
+                    item.name.toLowerCase().includes(lowerCaseQuery) ||
+                    item.id.toLowerCase().includes(lowerCaseQuery) ||
+                    item.category.toLowerCase().includes(lowerCaseQuery)
+                );
+                
+                totalCountElement.textContent = filtered.length;
+                renderTable(filtered);
+            };
+
+            searchInput.addEventListener('input', (e) => {
+                filterData(e.target.value);
+            });
+            
+            // --- 4. Sorting Logic ---
+            const sortData = (column, direction) => {
+                const sorted = [...inventoryData].sort((a, b) => {
+                    let valA = a[column];
+                    let valB = b[column];
+
+                    // Handle string comparisons
+                    if (typeof valA === 'string') {
+                        valA = valA.toLowerCase();
+                        valB = valB.toLowerCase();
+                    }
+
+                    if (valA < valB) {
+                        return direction === 'asc' ? -1 : 1;
+                    }
+                    if (valA > valB) {
+                        return direction === 'asc' ? 1 : -1;
+                    }
+                    return 0;
+                });
+                
+                inventoryData = sorted; // Update the main data array
+                filterData(searchInput.value); // Re-apply current filter and render
+            };
+
+            tableHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-sort-by');
+                    let direction = 'asc';
+
+                    // Toggle direction if clicking the same column
+                    if (currentSort.column === column) {
+                        direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    }
+                    
+                    currentSort = { column, direction };
+                    sortData(column, direction);
+                });
+            });
+
+            // Start the fetching process
+            fetchInventory();
+        });
+    </script>
+</body>
+</html>
