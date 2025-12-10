@@ -470,24 +470,35 @@
                     </div>
 
                     <!-- Right Column: The Form with Budget Select -->
-                    <form class="contact-form" action="https://formspree.io/f/mrbnalyk" method="POST"></form>
-                        <div class="form-group">
-                            <label for="name">Name</label>
-                            <input type="text" id="name" name="name" placeholder="Your Name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" placeholder="email@example.com" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="message">Tell me about your project</label>
-                            <textarea id="message" name="message" rows="5" placeholder="I need a high-performance website for..." required></textarea>
-                        </div>
+                    <form class="contact-form" action="https://formspree.io/f/mr6naLyK" method="POST">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" placeholder="Your Name" required>
+    </div>
 
-                        <input type="hidden" name="_next" value="https://filipe-dev.co.uk/thank-you.html">
-                        
-                        <button type="submit" class="btn btn--primary btn--full">Start a Conversation</button>
-                    </form>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="email@example.com" required>
+    </div>
+
+    <div class="form-group">
+        <label for="budget">Project Budget Range</label>
+        <select id="budget" name="budget" required>
+            <option value="" disabled selected>Select a range</option>
+            <option value="£1,000 - £2,500">£1,000 - £2,500</option>
+            <option value="£2,500 - £5,000">£2,500 - £5,000</option>
+            <option value="£5,000+">£5,000+</option>
+            <option value="Not Sure Yet">Not Sure Yet</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="message">Tell me about your project</label>
+        <textarea id="message" name="message" rows="5" placeholder="I need a high-performance website for..." required></textarea>
+    </div>
+
+    <input type="hidden" name="_next" value="https://filipe-dev.co.uk/thank-you.html">
+    <button type="submit" class="btn btn--primary btn--full">Start a Conversation</button>
+</form>
 
                 </div>
             </div>
