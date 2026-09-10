@@ -653,6 +653,74 @@
             color: var(--text-secondary);
         }
 
+        /* --- OMARCHY PLUGIN STYLING --- */
+        .plugin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        @media (min-width: 850px) {
+            .plugin-grid {
+                grid-template-columns: 1.2fr 1fr;
+                gap: 3.5rem;
+            }
+        }
+
+        .plugin-gallery {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .plugin-main-img-box {
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            background-color: var(--bg-main);
+            box-shadow: var(--shadow);
+        }
+
+        .plugin-main-img {
+            width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            filter: none !important; /* Retain full crisp retro colors! */
+        }
+
+        .plugin-sub-imgs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .plugin-sub-img-box {
+            border: 1px solid var(--border-color);
+            padding: 6px;
+            background-color: var(--bg-main);
+            box-shadow: var(--shadow);
+        }
+
+        .plugin-sub-img {
+            width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            filter: none !important; /* Retain full colors! */
+        }
+
+        .terminal-prompt-box {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            padding: 1.25rem;
+            font-size: 0.95rem;
+            color: var(--accent-primary);
+            text-shadow: 0 0 5px var(--accent-glow);
+            margin: 1.5rem 0;
+            overflow-x: auto;
+            white-space: pre;
+            word-wrap: normal;
+        }
+
         /* --- MATRIX SHIMMER EFFECT --- */
         .fade-on-scroll {
             opacity: 0.5;
@@ -678,8 +746,9 @@
             <nav class="nav-menu">
                 <a href="#services" class="nav-link">[01] SERVICES</a>
                 <a href="#skills" class="nav-link">[02] SKILLS</a>
-                <a href="#portfolio" class="nav-link">[03] WORK</a>
-                <a href="#about" class="nav-link">[04] ABOUT</a>
+                <a href="#plugin-release" class="nav-link">[03] BAR-COLOR</a>
+                <a href="#portfolio" class="nav-link">[04] WORK</a>
+                <a href="#about" class="nav-link">[05] ABOUT</a>
             </nav>
 
             <div class="header-actions">
@@ -800,6 +869,67 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+        </section>
+
+        <!-- Omarchy Plugin Section -->
+        <section id="plugin-release" class="plugin-section section-padding">
+            <div class="container">
+                <h2 class="section-title fade-on-scroll">/usr/share/omarchy/plugins/bar-color</h2>
+                
+                <div class="tui-panel fade-on-scroll">
+                    <div class="tui-panel__header">[ OMARCHY_PLUGIN: BAR_COLOR ]</div>
+                    
+                    <div class="plugin-grid">
+                        <!-- Left Column: Visual Showcase -->
+                        <div class="plugin-gallery">
+                            <div class="plugin-main-img-box">
+                                <img src="bar-color1.png" alt="Omarchy Bar Color Picker Interface" class="plugin-main-img">
+                            </div>
+                            
+                            <div class="plugin-sub-imgs">
+                                <div class="plugin-sub-img-box">
+                                    <img src="panel.png" alt="Bar Color Picker HSV Panel Detail" class="plugin-sub-img">
+                                </div>
+                                <div class="plugin-sub-img-box">
+                                    <img src="bar-swatch.png" alt="Bar Swatch Widget Detail" class="plugin-sub-img">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Plugin Details & Install -->
+                        <div class="plugin-details" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <h3 class="text-accent">&gt; MODULE LOADED: fixlixpender.bar-color</h3>
+                            <p style="font-size: 1.1rem; line-height: 1.6;">
+                                An official utility for the Omarchy shell allowing users to adjust their status bar's color, opacity, and transparency dynamically directly from the bar interface.
+                            </p>
+                            
+                            <h4 style="color: var(--accent-primary); font-size: 1.25rem;">[ KEY_FEATURES ]</h4>
+                            <ul style="display: flex; flex-direction: column; gap: 0.5rem; padding-left: 0.5rem;">
+                                <li class="skill-item">Interactive HSV square picker & hue rail for live adjustments</li>
+                                <li class="skill-item">WCAG AA compliance match: text automatically switches colors for legibility</li>
+                                <li class="skill-item">Configuration persistence: updates and survives standard theme swaps</li>
+                                <li class="skill-item">Deep integration with built-in transparent bar toggle modes</li>
+                                <li class="skill-item">One-click 'Reset to Theme' to instantly restore base defaults</li>
+                            </ul>
+                            
+                            <h4 style="color: var(--accent-primary); font-size: 1.25rem; margin-top: 1rem;">[ QUICK_INSTALL ]</h4>
+                            <div class="terminal-prompt-box">
+$ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --enable --yes
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                                <a href="https://plugins.omarchy.org/plugin.html?id=fixlixpender.bar-color" target="_blank" class="btn">
+                                    REGISTRY_PAGE &gt;
+                                </a>
+                                <a href="https://github.com/fixlixpender/omarchy-bar-color" target="_blank" class="btn">
+                                    VIEW_SOURCE &gt;
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
                 </div>
             </div>
         </section>
