@@ -122,7 +122,14 @@
         }
 
         h1 { font-size: 4rem; letter-spacing: 2px; text-shadow: 0 0 10px var(--accent-glow); }
-        h2 { font-size: 2.75rem; letter-spacing: 1px; text-shadow: 0 0 8px var(--accent-glow); }
+        h2 {
+            font-size: 2.75rem;
+            letter-spacing: 1px;
+            text-shadow: 0 0 8px var(--accent-glow);
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all; /* Prevent stretching from long retro path names */
+        }
         h3 { font-size: 1.85rem; letter-spacing: 0.5px; }
         
         p { 
@@ -275,6 +282,15 @@
             }
             .header-actions {
                 gap: 0.5rem;
+            }
+            h1 {
+                font-size: 2.85rem !important; /* Scale down H1 on mobile */
+            }
+            h2 {
+                font-size: 1.85rem !important; /* Scale down H2 paths so they wrap cleanly */
+            }
+            .section-title {
+                margin-bottom: 2.5rem;
             }
         }
 
