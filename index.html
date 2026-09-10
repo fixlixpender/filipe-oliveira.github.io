@@ -22,14 +22,13 @@
             --bg-main: #070b08;
             --bg-card: #0c120e;
             --border-color: #123019;
-            --text-primary: #a8f0b8;
-            --text-secondary: #2b6b3d;
+            --text-primary: #e8fceb; /* Super crisp soft white-green */
+            --text-secondary: #8edaa2; /* Highly legible medium-light green */
             --accent-primary: #00ff5f;
             --accent-hover: #39ff14;
             --accent-glow: rgba(0, 255, 95, 0.2);
             --header-bg: rgba(7, 11, 8, 0.95);
             --header-border: #123019;
-            --scanlines: rgba(0, 255, 95, 0.015);
             --shadow: 0 0 10px rgba(0, 255, 95, 0.05);
             --shadow-hover: 0 0 20px rgba(0, 255, 95, 0.25);
             --radius: 0px; /* Completely blocky retro style */
@@ -42,14 +41,13 @@
             --bg-main: #0c0714;
             --bg-card: #150b24;
             --border-color: #38155c;
-            --text-primary: #e0d5f5;
-            --text-secondary: #7e4eb5;
+            --text-primary: #f5f0ff; /* Very bright lilac */
+            --text-secondary: #a98fe3; /* Crisp, readable light purple */
             --accent-primary: #ff007f; /* Hot Pink */
             --accent-hover: #00ffff;    /* Neon Cyan */
             --accent-glow: rgba(255, 0, 127, 0.25);
             --header-bg: rgba(12, 7, 20, 0.95);
             --header-border: #38155c;
-            --scanlines: rgba(255, 0, 127, 0.02);
             --shadow: 0 0 10px rgba(255, 0, 127, 0.05);
             --shadow-hover: 0 0 20px rgba(255, 0, 127, 0.25);
         }
@@ -59,14 +57,13 @@
             --bg-main: #1d2021;
             --bg-card: #282828;
             --border-color: #3c3836;
-            --text-primary: #ebdbb2;
-            --text-secondary: #928374;
+            --text-primary: #fbf1c7; /* Warm light beige */
+            --text-secondary: #bdae93; /* High contrast warm gray */
             --accent-primary: #fabd2f; /* Gold */
             --accent-hover: #fe8019;    /* Orange */
             --accent-glow: rgba(250, 189, 47, 0.2);
             --header-bg: rgba(29, 32, 33, 0.95);
             --header-border: #3c3836;
-            --scanlines: rgba(250, 189, 47, 0.015);
             --shadow: 0 0 10px rgba(250, 189, 47, 0.05);
             --shadow-hover: 0 0 20px rgba(250, 189, 47, 0.25);
         }
@@ -93,31 +90,9 @@
             position: relative;
         }
 
-        /* Scanline Overlay for Arcade Feel */
-        body::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(var(--scanlines) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 9999;
-            background-size: 100% 4px, 6px 100%;
-            pointer-events: none;
-        }
-
-        /* Screen Flicker Animation */
-        @keyframes crt-flicker {
-            0% { opacity: 0.985; }
-            50% { opacity: 1; }
-            100% { opacity: 0.99; }
-        }
-        body {
-            animation: crt-flicker 0.15s infinite;
-        }
-
         a { text-decoration: none; color: inherit; }
         ul { list-style: none; }
-        img { max-width: 100%; display: block; filter: grayscale(100%) contrast(150%) brightness(90%); } /* Retro-styled picture */
+        img { max-width: 100%; display: block; filter: grayscale(100%) contrast(120%) brightness(95%); } /* Retro-styled picture */
 
         /* --- LAYOUT CONTAINER --- */
         .container {
@@ -680,16 +655,14 @@
 
         /* --- MATRIX SHIMMER EFFECT --- */
         .fade-on-scroll {
-            opacity: 0.3;
-            transform: scale(0.99);
-            filter: blur(1px);
-            transition: opacity 0.4s ease, transform 0.4s ease, filter 0.4s ease;
+            opacity: 0.5;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
         .fade-on-scroll.is-visible {
             opacity: 1;
-            transform: scale(1);
-            filter: blur(0px);
+            transform: translateY(0);
         }
     </style>
 </head>
