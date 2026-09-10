@@ -18,19 +18,19 @@
     <style>
         /* --- CSS VARIABLES & THEMES (Omarchy Inspired) --- */
         :root {
-            /* --- Hackerman Green (Default) --- */
-            --bg-main: #070b08;
-            --bg-card: #0c120e;
-            --border-color: #123019;
-            --text-primary: #e8fceb; /* Super crisp soft white-green */
-            --text-secondary: #8edaa2; /* Highly legible medium-light green */
-            --accent-primary: #00ff5f;
-            --accent-hover: #39ff14;
-            --accent-glow: rgba(0, 255, 95, 0.2);
-            --header-bg: rgba(7, 11, 8, 0.95);
-            --header-border: #123019;
-            --shadow: 0 0 10px rgba(0, 255, 95, 0.05);
-            --shadow-hover: 0 0 20px rgba(0, 255, 95, 0.25);
+            /* --- Gruvbox (Default) --- */
+            --bg-main: #1d2021;
+            --bg-card: #282828;
+            --border-color: #3c3836;
+            --text-primary: #fbf1c7; /* Warm light beige */
+            --text-secondary: #bdae93; /* High contrast warm gray */
+            --accent-primary: #fabd2f; /* Gold */
+            --accent-hover: #fe8019;    /* Orange */
+            --accent-glow: rgba(250, 189, 47, 0.2);
+            --header-bg: rgba(29, 32, 33, 0.95);
+            --header-border: #3c3836;
+            --shadow: 0 0 10px rgba(250, 189, 47, 0.05);
+            --shadow-hover: 0 0 20px rgba(250, 189, 47, 0.25);
             --radius: 0px; /* Completely blocky retro style */
             --transition: all 0.2s steps(4); /* Blocky step transition */
             --header-height: 70px;
@@ -52,20 +52,20 @@
             --shadow-hover: 0 0 20px rgba(255, 0, 127, 0.25);
         }
 
-        [data-theme="gruvbox"] {
-            /* --- Gruvbox --- */
-            --bg-main: #1d2021;
-            --bg-card: #282828;
-            --border-color: #3c3836;
-            --text-primary: #fbf1c7; /* Warm light beige */
-            --text-secondary: #bdae93; /* High contrast warm gray */
-            --accent-primary: #fabd2f; /* Gold */
-            --accent-hover: #fe8019;    /* Orange */
-            --accent-glow: rgba(250, 189, 47, 0.2);
-            --header-bg: rgba(29, 32, 33, 0.95);
-            --header-border: #3c3836;
-            --shadow: 0 0 10px rgba(250, 189, 47, 0.05);
-            --shadow-hover: 0 0 20px rgba(250, 189, 47, 0.25);
+        [data-theme="hackerman"] {
+            /* --- Hackerman Green --- */
+            --bg-main: #070b08;
+            --bg-card: #0c120e;
+            --border-color: #123019;
+            --text-primary: #e8fceb; /* Super crisp soft white-green */
+            --text-secondary: #8edaa2; /* Highly legible medium-light green */
+            --accent-primary: #00ff5f;
+            --accent-hover: #39ff14;
+            --accent-glow: rgba(0, 255, 95, 0.2);
+            --header-bg: rgba(7, 11, 8, 0.95);
+            --header-border: #123019;
+            --shadow: 0 0 10px rgba(0, 255, 95, 0.05);
+            --shadow-hover: 0 0 20px rgba(0, 255, 95, 0.25);
         }
 
         /* --- BASE RESET --- */
@@ -880,9 +880,9 @@
             </nav>
 
             <div class="header-actions">
-                <!-- Theme Switcher Cycles: Hackerman -> Synthwave -> Gruvbox -->
+                <!-- Theme Switcher Cycles: Gruvbox -> Synthwave -> Hackerman -->
                 <button id="themeSwitcherBtn" class="theme-switcher-btn">
-                    [ THEME: HACKERMAN ]
+                    [ THEME: GRUVBOX ]
                 </button>
                 <a href="#contact" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.95rem;">LET'S_TALK</a>
             </div>
@@ -1324,7 +1324,7 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
 
             // --- 2. Tri-State Retro Theme Selector (Omarchy inspired + 'T' keypress) ---
             const themeBtn = document.getElementById('themeSwitcherBtn');
-            const themes = ['hackerman', 'synthwave', 'gruvbox'];
+            const themes = ['gruvbox', 'synthwave', 'hackerman'];
             let currentThemeIdx = 0;
 
             // Load saved theme if exists
@@ -1335,7 +1335,7 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
             }
 
             function applyTheme(themeName) {
-                if (themeName === 'hackerman') {
+                if (themeName === 'gruvbox') {
                     document.documentElement.removeAttribute('data-theme');
                 } else {
                     document.documentElement.setAttribute('data-theme', themeName);
