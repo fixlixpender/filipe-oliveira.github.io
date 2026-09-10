@@ -663,49 +663,77 @@
 
         @media (min-width: 850px) {
             .plugin-grid {
-                grid-template-columns: 1.2fr 1fr;
-                gap: 3.5rem;
+                grid-template-columns: 1.1fr 1fr; /* Enlarged left column for images */
+                gap: 3rem;
             }
         }
 
         .plugin-gallery {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
-        .plugin-main-img-box {
+        .plugin-img-container {
+            position: relative;
             border: 1px solid var(--border-color);
             padding: 6px;
             background-color: var(--bg-main);
             box-shadow: var(--shadow);
+            cursor: pointer;
+            overflow: hidden;
+            transition: var(--transition);
         }
 
-        .plugin-main-img {
+        .plugin-img-container:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-hover);
+            transform: scale(1.015);
+        }
+
+        .plugin-main-img, .plugin-sub-img {
             width: 100%;
             height: auto;
             border: 1px solid var(--border-color);
+            display: block;
             filter: none !important; /* Retain full crisp retro colors! */
+            transition: var(--transition);
+        }
+
+        .plugin-img-container:hover .plugin-main-img,
+        .plugin-img-container:hover .plugin-sub-img {
+            border-color: var(--accent-primary);
+        }
+
+        /* Hover Zoom Hint Banner */
+        .zoom-hint {
+            position: absolute;
+            bottom: 6px;
+            left: 6px;
+            right: 6px;
+            background-color: rgba(7, 11, 8, 0.85);
+            border-top: 1px solid var(--border-color);
+            color: var(--accent-primary);
+            font-family: 'VT323', monospace;
+            font-size: 1.15rem;
+            text-align: center;
+            padding: 0.35rem;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: var(--transition);
+        }
+
+        .plugin-img-container:hover .zoom-hint {
+            opacity: 1;
+            transform: translateY(0);
+            border-color: var(--accent-primary);
         }
 
         .plugin-sub-imgs {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1.5rem;
-        }
-
-        .plugin-sub-img-box {
-            border: 1px solid var(--border-color);
-            padding: 6px;
-            background-color: var(--bg-main);
-            box-shadow: var(--shadow);
-        }
-
-        .plugin-sub-img {
-            width: 100%;
-            height: auto;
-            border: 1px solid var(--border-color);
-            filter: none !important; /* Retain full colors! */
+            gap: 1.25rem;
         }
 
         .terminal-prompt-box {
@@ -719,6 +747,72 @@
             overflow-x: auto;
             white-space: pre;
             word-wrap: normal;
+        }
+
+        /* --- RETRO LIGHTBOX MODAL --- */
+        .retro-modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background-color: rgba(7, 11, 8, 0.96); /* Solid retro-dark overlay */
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .retro-modal__content {
+            position: relative;
+            max-width: 900px;
+            width: 100%;
+            border: 2px solid var(--accent-primary);
+            padding: 12px;
+            background-color: var(--bg-card);
+            box-shadow: 0 0 30px var(--accent-glow);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .retro-modal__img {
+            max-width: 100%;
+            max-height: 75vh;
+            display: block;
+            margin: 0 auto;
+            border: 1px solid var(--border-color);
+        }
+
+        .retro-modal__footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 0.75rem;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.95rem;
+        }
+
+        .retro-modal__caption {
+            color: var(--text-primary);
+            text-transform: uppercase;
+        }
+
+        .retro-modal__close-btn {
+            background-color: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: 'VT323', monospace;
+            font-size: 1.15rem;
+            padding: 0.2rem 0.6rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: var(--transition);
+        }
+
+        .retro-modal__close-btn:hover {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
         }
 
         /* --- MATRIX SHIMMER EFFECT --- */
@@ -884,16 +978,19 @@
                     <div class="plugin-grid">
                         <!-- Left Column: Visual Showcase -->
                         <div class="plugin-gallery">
-                            <div class="plugin-main-img-box">
+                            <div class="plugin-img-container" data-modal-target>
                                 <img src="bar-color1.png" alt="Omarchy Bar Color Picker Interface" class="plugin-main-img">
+                                <div class="zoom-hint">[ Click to Zoom Image ]</div>
                             </div>
                             
                             <div class="plugin-sub-imgs">
-                                <div class="plugin-sub-img-box">
+                                <div class="plugin-img-container" data-modal-target>
                                     <img src="panel.png" alt="Bar Color Picker HSV Panel Detail" class="plugin-sub-img">
+                                    <div class="zoom-hint">[ Zoom Panel ]</div>
                                 </div>
-                                <div class="plugin-sub-img-box">
+                                <div class="plugin-img-container" data-modal-target>
                                     <img src="bar-swatch.png" alt="Bar Swatch Widget Detail" class="plugin-sub-img">
+                                    <div class="zoom-hint">[ Zoom Swatch ]</div>
                                 </div>
                             </div>
                         </div>
@@ -1274,7 +1371,56 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
                     }
                 });
             });
+
+            // --- 6. Retro Lightbox Modal Controller ---
+            const modal = document.getElementById('retroModal');
+            const modalImg = document.getElementById('modalImg');
+            const modalCaption = document.getElementById('modalCaption');
+            const closeModalBtn = document.getElementById('modalCloseBtn');
+            const zoomContainers = document.querySelectorAll('[data-modal-target]');
+
+            zoomContainers.forEach(container => {
+                container.addEventListener('click', () => {
+                    const img = container.querySelector('img');
+                    if (img) {
+                        modal.style.display = 'flex';
+                        modalImg.src = img.src;
+                        modalCaption.textContent = img.alt;
+                    }
+                });
+            });
+
+            function closeModal() {
+                modal.style.display = 'none';
+                modalImg.src = '';
+                modalCaption.textContent = '';
+            }
+
+            closeModalBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && modal.style.display === 'flex') {
+                    closeModal();
+                }
+            });
         });
     </script>
+
+    <!-- Retro Lightbox Modal Overlay -->
+    <div id="retroModal" class="retro-modal">
+        <div class="retro-modal__content">
+            <button id="modalCloseBtn" class="retro-modal__close-btn">[ Close [X] ]</button>
+            <img id="modalImg" class="retro-modal__img" src="" alt="">
+            <div class="retro-modal__footer">
+                <div id="modalCaption" class="retro-modal__caption"></div>
+                <div style="color: var(--text-secondary); text-transform: uppercase;">[ ESC to Exit ]</div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
