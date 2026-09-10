@@ -249,6 +249,30 @@
             color: var(--accent-primary);
         }
 
+        /* --- RESPONSIVE MOBILE NAVIGATION FIXED --- */
+        .hide-mobile {
+            display: inline;
+        }
+
+        @media (max-width: 640px) {
+            .hide-mobile {
+                display: none; /* Hide THEME: text label on mobile screens */
+            }
+            .header .btn {
+                display: none; /* Hide Let's Talk CTA button in mobile header */
+            }
+            .brand {
+                font-size: 1.6rem !important; /* Scale logo down nicely */
+            }
+            .theme-switcher-btn {
+                padding: 0.35rem 0.65rem;
+                font-size: 0.85rem;
+            }
+            .header-actions {
+                gap: 0.5rem;
+            }
+        }
+
         /* --- TUI MODULE FRAME / PANEL --- */
         .tui-panel {
             background-color: var(--bg-card);
@@ -1292,11 +1316,10 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
             function applyTheme(themeName) {
                 if (themeName === 'hackerman') {
                     document.documentElement.removeAttribute('data-theme');
-                    themeBtn.textContent = '[ THEME: HACKERMAN ]';
                 } else {
                     document.documentElement.setAttribute('data-theme', themeName);
-                    themeBtn.textContent = `[ THEME: ${themeName.toUpperCase()} ]`;
                 }
+                themeBtn.innerHTML = `[ <span class="hide-mobile">THEME:</span> ${themeName.toUpperCase()} ]`;
                 localStorage.setItem('retro-theme', themeName);
             }
 
