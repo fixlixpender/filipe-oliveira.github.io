@@ -573,6 +573,29 @@
             filter: drop-shadow(0 0 12px var(--accent));
         }
 
+        .cos1-gallery-img {
+            width: 100%;
+            height: auto;
+            border: 1px solid var(--border-color);
+            transition: transform 0.4s ease, filter 0.4s ease, z-index 0s;
+            cursor: zoom-in;
+            transform-origin: center center;
+            display: block;
+        }
+
+        .cos1-gallery-img:hover {
+            transform: scale(1.6);
+            filter: drop-shadow(0 0 12px var(--accent));
+            z-index: 10;
+            position: relative;
+        }
+
+        @media (max-width: 640px) {
+            .cos1-gallery {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
         .about-img {
             width: 220px;
             height: 220px;
@@ -1005,6 +1028,12 @@
                         <p><span style="color: var(--accent-primary); font-family: 'VT323', monospace; font-size: 1.1rem;">Agentic Workflows:</span> Incorporates self-authoring procedural skills (SKILL.md) for dynamic tool execution, allowing Samantha to autonomously learn and deploy new capabilities on demand.</p>
                         <p><span style="color: var(--accent-primary); font-family: 'VT323', monospace; font-size: 1.1rem;">Continuous Evolution:</span> Designed for recursive self-improvement and dynamic personality evolution (SOUL.md), ensuring an ever-deepening and authentic partnership.</p>
                         <p>This involved intricate backend development, secure OAuth/API integrations, robust error handling, and a constant focus on creating a system that feels alive and genuinely responsive.</p>
+                        <div class="cos1-gallery" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                            <img src="brain.png" alt="COS1 Brain Interface" class="cos1-gallery-img">
+                            <img src="chat1.png" alt="COS1 Live Sync" class="cos1-gallery-img">
+                            <img src="dashboard.png" alt="COS1 Neural Dashboard" class="cos1-gallery-img">
+                            <img src="chat2.png" alt="COS1 Chat with Blake" class="cos1-gallery-img">
+                        </div>
                     </div>
                 </div>
             </div>
