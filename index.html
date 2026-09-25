@@ -569,8 +569,8 @@
         }
 
         .cos1-hero-img:hover {
-            transform: scale(1.8);
-            filter: drop-shadow(0 0 12px var(--accent));
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 8px var(--accent));
         }
 
         .cos1-gallery-img {
@@ -584,8 +584,8 @@
         }
 
         .cos1-gallery-img:hover {
-            transform: scale(1.6);
-            filter: drop-shadow(0 0 12px var(--accent));
+            transform: scale(1.05);
+            filter: drop-shadow(0 0 8px var(--accent));
             z-index: 10;
             position: relative;
         }
@@ -1554,7 +1554,9 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
             const modalImg = document.getElementById('modalImg');
             const modalCaption = document.getElementById('modalCaption');
             const closeModalBtn = document.getElementById('modalCloseBtn');
+            // Select all clickable images: data-modal-target containers + direct image classes
             const zoomContainers = document.querySelectorAll('[data-modal-target]');
+            const directImages = document.querySelectorAll('.cos1-hero-img, .cos1-gallery-img, .plugin-main-img');
 
             zoomContainers.forEach(container => {
                 container.addEventListener('click', () => {
@@ -1564,6 +1566,14 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
                         modalImg.src = img.src;
                         modalCaption.textContent = img.alt;
                     }
+                });
+            });
+
+            directImages.forEach(img => {
+                img.addEventListener('click', () => {
+                    modal.style.display = 'flex';
+                    modalImg.src = img.src;
+                    modalCaption.textContent = img.alt;
                 });
             });
 
