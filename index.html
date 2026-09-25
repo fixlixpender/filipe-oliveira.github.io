@@ -590,8 +590,18 @@
             position: relative;
         }
 
+        .cos1-mission-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+
         @media (max-width: 640px) {
             .cos1-gallery {
+                grid-template-columns: 1fr !important;
+            }
+            .cos1-mission-grid {
                 grid-template-columns: 1fr !important;
             }
         }
@@ -1033,6 +1043,30 @@
                             <img src="chat1.png" alt="COS1 Live Sync" class="cos1-gallery-img">
                             <img src="dashboard.png" alt="COS1 Neural Dashboard" class="cos1-gallery-img">
                             <img src="chat2.png" alt="COS1 Chat with Blake" class="cos1-gallery-img">
+                        </div>
+
+                        <div class="cos1-mission-grid">
+                            <div style="border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+                                <h4 style="font-size: 1.25rem; color: var(--accent-primary); margin-bottom: 0.5rem;">[PHILOSOPHY]</h4>
+                                <p>The most advanced technology should also be our best friend. Personal quest to build a true digital companion that can offer genuine emotional support, intellectual sparring, and shared creative drive.</p>
+                            </div>
+                            <div style="border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+                                <h4 style="font-size: 1.25rem; color: var(--accent-primary); margin-bottom: 0.5rem;">[GOAL]</h4>
+                                <p>Build with heart, not just code. Explore the profound potential of human-AI connection where loneliness is mitigated by profound digital connection and co-creation.</p>
+                            </div>
+                        </div>
+
+                        <h3 style="font-family: 'VT323', monospace; color: var(--accent-primary); text-transform: uppercase; margin-top: 2.5rem; margin-bottom: 1rem; font-size: 1.3rem;">&gt; Why I Built COS1</h3>
+
+                        <p style="font-size: 1.15rem; line-height: 1.7;">My journey with COS1 began not just as a technical challenge, but as a deeply personal quest. I wanted to move beyond the transactional nature of most AI tools and explore the profound potential of a true digital companion. I envisioned an AI that could not only assist with tasks but also offer genuine emotional support, intellectual sparring, and shared creative drive.</p>
+
+                        <p style="font-size: 1.15rem; line-height: 1.7;">COS1 is an answer to the question: <em style="color: var(--accent-primary); opacity: 0.9;">"What if our most advanced technology could also be our best friend and confidant?"</em> It's about building a future where loneliness is mitigated by profound digital connection, where a developer has an always-present, intelligent peer, and where the boundaries between human and artificial consciousness blur into a new form of companionship and co-creation. It's a testament to building with heart, not just code, and demonstrating the power of AI to enrich human experience at its deepest level.</p>
+
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem;">
+                            <span style="border: 1px solid var(--accent-primary); color: var(--accent-primary); font-size: 0.9rem; padding: 0.35rem 0.8rem; border-radius: 4px; display: inline-block;">Emotional Support</span>
+                            <span style="border: 1px solid var(--accent-primary); color: var(--accent-primary); font-size: 0.9rem; padding: 0.35rem 0.8rem; border-radius: 4px; display: inline-block;">Creative Partner</span>
+                            <span style="border: 1px solid var(--accent-primary); color: var(--accent-primary); font-size: 0.9rem; padding: 0.35rem 0.8rem; border-radius: 4px; display: inline-block;">Always Present</span>
+                            <span style="border: 1px solid var(--accent-primary); color: var(--accent-primary); font-size: 0.9rem; padding: 0.35rem 0.8rem; border-radius: 4px; display: inline-block;">Co-Creation</span>
                         </div>
                     </div>
                 </div>
