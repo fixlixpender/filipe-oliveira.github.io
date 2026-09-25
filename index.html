@@ -27,7 +27,7 @@
             --accent-primary: #fabd2f; /* Gold */
             --accent-hover: #fe8019;    /* Orange */
             --accent-glow: rgba(250, 189, 47, 0.2);
-            --header-bg: rgba(29, 32, 33, 0.95);
+            --header-bg: rgba(29, 32, 33, 0.45);
             --header-border: #3c3836;
             --shadow: 0 0 10px rgba(250, 189, 47, 0.05);
             --shadow-hover: 0 0 20px rgba(250, 189, 47, 0.25);
@@ -46,7 +46,7 @@
             --accent-primary: #ff007f; /* Hot Pink */
             --accent-hover: #00ffff;    /* Neon Cyan */
             --accent-glow: rgba(255, 0, 127, 0.25);
-            --header-bg: rgba(12, 7, 20, 0.95);
+            --header-bg: rgba(12, 7, 20, 0.45);
             --header-border: #38155c;
             --shadow: 0 0 10px rgba(255, 0, 127, 0.05);
             --shadow-hover: 0 0 20px rgba(255, 0, 127, 0.25);
@@ -62,7 +62,7 @@
             --accent-primary: #00ff5f;
             --accent-hover: #39ff14;
             --accent-glow: rgba(0, 255, 95, 0.2);
-            --header-bg: rgba(7, 11, 8, 0.95);
+            --header-bg: rgba(7, 11, 8, 0.45);
             --header-border: #123019;
             --shadow: 0 0 10px rgba(0, 255, 95, 0.05);
             --shadow-hover: 0 0 20px rgba(0, 255, 95, 0.25);
@@ -185,6 +185,8 @@
         /* --- HEADER & FLOATING NAVIGATION --- */
         .header {
             background-color: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             position: fixed;
             top: 0;
             left: 0;
