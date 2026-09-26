@@ -103,6 +103,31 @@
             line-height: 1.6;
         }
 
+        /* --- THEMED SCROLLBAR (follows the active theme's variables) --- */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: var(--bg-main);
+            border-left: 1px solid var(--border-color);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: var(--accent-primary);
+            border: 3px solid var(--bg-main); /* Inset block look */
+            border-radius: 0;
+        }
+
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--accent-hover); }
+        ::-webkit-scrollbar-corner { background-color: var(--bg-main); }
+
+        /* Firefox only: in Chromium, scrollbar-color would override the blocky styles above */
+        @supports (-moz-appearance: none) {
+            * { scrollbar-color: var(--accent-primary) var(--bg-main); }
+        }
+
         body {
             background-color: var(--bg-main);
             padding-top: var(--header-height);
