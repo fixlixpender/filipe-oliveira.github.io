@@ -613,11 +613,33 @@
             justify-content: center;
         }
 
+        /* Unframed retro TV: transparent cut-out sits straight on the panel */
         .dossier-image-box {
-            border: 2px solid var(--border-color);
-            padding: 8px;
-            background-color: var(--bg-main);
-            box-shadow: var(--shadow);
+            position: relative;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        /* Theme-coloured glow spilling from the TV screen */
+        .dossier-image-box::before {
+            content: '';
+            position: absolute;
+            left: -8%;
+            top: -18%;
+            width: 96%;
+            height: 136%;
+            background: radial-gradient(ellipse at center, var(--accent-primary), transparent 70%);
+            filter: blur(40px);
+            opacity: 0.5;
+            pointer-events: none;
+            animation: tv-glow 4s steps(1) infinite;
+        }
+
+        @keyframes tv-glow {
+            0%, 100% { opacity: 0.5; }
+            37% { opacity: 0.32; }
+            38% { opacity: 0.58; }
+            71% { opacity: 0.4; }
         }
 
         .cos1-hero-img {
@@ -667,10 +689,32 @@
         }
 
         .about-img {
-            width: 220px;
-            height: 220px;
-            object-fit: cover;
-            border: 1px solid var(--border-color);
+            position: relative;
+            width: 100%;
+            height: auto;
+            filter: grayscale(100%) contrast(110%) drop-shadow(0 22px 26px rgba(0, 0, 0, 0.55));
+            transition: transform 0.4s ease, filter 0.4s ease;
+            animation: tv-float 6s ease-in-out infinite;
+        }
+
+        .about-img:hover {
+            transform: scale(1.04) rotate(-1deg);
+            filter: grayscale(100%) contrast(115%) drop-shadow(0 0 18px var(--accent-primary));
+        }
+
+        /* Idle float uses `translate` so it composes with the hover transform and scroll parallax */
+        @keyframes tv-float {
+            0%, 100% { translate: 0 0; }
+            50% { translate: 0 -8px; }
+        }
+
+        @media (max-width: 849px) {
+            .about-visual { padding-top: 1.5rem; }
+            .dossier-image-box { max-width: 360px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .about-img, .dossier-image-box::before { animation: none; }
         }
 
         .about-content {
@@ -1738,7 +1782,7 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
                         <!-- Dossier Avatar -->
                         <div class="about-visual">
                             <div class="dossier-image-box">
-                                <img src="filipe.png" alt="Filipe Oliveira Profile Scan" class="about-img">
+                                <img src="filipe-tv.webp" alt="Filipe Oliveira Profile Scan" class="about-img" width="800" height="538">
                             </div>
                         </div>
 
