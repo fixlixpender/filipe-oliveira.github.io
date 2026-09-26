@@ -15,6 +15,20 @@
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
+    <!-- FX bootstrap: flag motion-enabled visits before first paint (failsafe restores content) -->
+    <script>
+        (function () {
+            var d = document.documentElement;
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+            d.classList.add('fx', 'fx-pre-intro');
+            try { if (!sessionStorage.getItem('fx-booted')) d.classList.add('fx-booting'); } catch (e) {}
+            setTimeout(function () {
+                if (!d.classList.contains('fx-ready')) d.classList.remove('fx');
+                d.classList.remove('fx-booting', 'fx-pre-intro');
+            }, 7000);
+        })();
+    </script>
+
     <style>
         /* --- CSS VARIABLES & THEMES (Omarchy Inspired) --- */
         :root {
@@ -910,16 +924,473 @@
             border-color: var(--accent-primary);
         }
 
-        /* --- MATRIX SHIMMER EFFECT --- */
-        .fade-on-scroll {
-            opacity: 0.5;
-            transform: translateY(10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+        /* ================================================================
+           FX LAYER — interactive scrolling & animation
+           Everything below is scoped to html.fx (set only when motion is allowed).
+           ================================================================ */
+
+        /* --- SMOOTH SCROLL (Lenis) --- */
+        html.lenis, html.lenis body { height: auto; }
+        .lenis.lenis-smooth { scroll-behavior: auto !important; }
+        .lenis.lenis-stopped { overflow: hidden; }
+
+        /* --- BOOT SEQUENCE --- */
+        html.fx-booting { overflow: hidden; }
+        html.fx-booting body > *:not(.fx-boot) { visibility: hidden; }
+
+        .fx-boot {
+            position: fixed;
+            inset: 0;
+            z-index: 20000;
+            background-color: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            cursor: pointer;
         }
 
-        .fade-on-scroll.is-visible {
+        .fx-boot__screen {
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .fx-boot__log {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            white-space: pre-wrap;
+            min-height: 13em;
+            margin-bottom: 1.5rem;
+        }
+
+        .fx-boot__log .ok { color: var(--accent-primary); text-shadow: 0 0 6px var(--accent-glow); }
+
+        .fx-boot__bar {
+            height: 14px;
+            border: 1px solid var(--border-color);
+            padding: 2px;
+        }
+
+        .fx-boot__bar span {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: repeating-linear-gradient(90deg, var(--accent-primary) 0 10px, transparent 10px 13px);
+            box-shadow: 0 0 12px var(--accent-glow);
+            transition: width 0.15s steps(3);
+        }
+
+        .fx-boot__hint {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: right;
+            animation: fx-blink 1.2s steps(1) infinite;
+        }
+
+        .fx-boot.is-off { animation: fx-crt-off 0.65s cubic-bezier(.7,0,.3,1) forwards; pointer-events: none; }
+        .fx-boot.is-off .fx-boot__screen { opacity: 0; transition: opacity 0.15s; }
+
+        @keyframes fx-crt-off {
+            0%   { clip-path: inset(0 0 0 0); filter: brightness(1); }
+            45%  { clip-path: inset(49.6% 0 49.6% 0); filter: brightness(3); background-color: var(--accent-primary); }
+            100% { clip-path: inset(50% 50% 50% 50%); filter: brightness(6); background-color: var(--accent-primary); }
+        }
+
+        /* --- CRT OVERLAY --- */
+        .fx-crt {
+            position: fixed;
+            inset: 0;
+            z-index: 99990;
+            pointer-events: none;
+            background: repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(0, 0, 0, 0.14) 3px);
+        }
+
+        .fx-crt::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 22vh;
+            top: -22vh;
+            background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.025), transparent);
+            animation: fx-scanband 9s linear infinite;
+        }
+
+        .fx-crt::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+            animation: fx-flicker 6s steps(1) infinite;
+        }
+
+        @keyframes fx-scanband { to { transform: translateY(130vh); } }
+        @keyframes fx-flicker {
+            0%, 100% { opacity: 1; }
+            47% { opacity: 0.85; }
+            48% { opacity: 1; }
+            82% { opacity: 0.92; }
+        }
+
+        /* --- NEURAL BACKGROUND --- */
+        .fx-neural {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.55;
+        }
+
+        /* --- SCROLL PROGRESS & HUD --- */
+        .fx-progress {
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 100%;
+            height: 2px;
+            transform-origin: left center;
+            transform: scaleX(0);
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-hover));
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .fx-hud {
+            position: fixed;
+            right: 1.25rem;
+            bottom: 1.25rem;
+            z-index: 900;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background-color: var(--header-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 0.35rem 0.7rem;
+            cursor: pointer;
+            white-space: pre;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .fx-hud:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .fx-hud b { color: var(--accent-primary); font-weight: normal; }
+
+        @media (max-width: 640px) {
+            .fx-hud { right: 0.75rem; bottom: 0.75rem; font-size: 0.75rem; }
+            .fx-hud .fx-hud__sec { display: none; }
+        }
+
+        /* --- SIDE RAIL NAVIGATION --- */
+        .fx-rail {
+            position: fixed;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 900;
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        @media (min-width: 1240px) {
+            .fx-rail { display: flex; }
+        }
+
+        .fx-rail__item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .fx-rail__num::before {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 1px;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+            background-color: currentColor;
+            transition: width 0.3s ease;
+        }
+
+        .fx-rail__label {
+            opacity: 0;
+            transform: translateX(-8px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .fx-rail__item:hover,
+        .fx-rail__item.is-active { color: var(--accent-primary); text-shadow: 0 0 6px var(--accent-glow); }
+        .fx-rail__item:hover .fx-rail__label,
+        .fx-rail__item.is-active .fx-rail__label { opacity: 1; transform: none; }
+        .fx-rail__item.is-active .fx-rail__num::before { width: 32px; }
+
+        .nav-link.is-active {
+            color: var(--accent-primary);
+            border-color: var(--border-color);
+            border-bottom-color: var(--accent-primary);
+        }
+
+        /* --- CURSOR --- */
+        .fx-cursor,
+        .fx-cursor-dot {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 100001;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .fx-cursor::before {
+            content: '';
+            position: absolute;
+            left: -15px;
+            top: -15px;
+            width: 30px;
+            height: 30px;
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: all 0.25s cubic-bezier(.2,.8,.2,1);
+        }
+
+        .fx-cursor.is-hover::before {
+            left: -24px;
+            top: -24px;
+            width: 48px;
+            height: 48px;
+            transform: rotate(45deg);
+            background-color: var(--accent-glow);
+            border-color: var(--accent-hover);
+        }
+
+        .fx-cursor.is-down::before { transform: scale(0.7) rotate(45deg); }
+
+        .fx-cursor-dot::before {
+            content: '';
+            position: absolute;
+            left: -3px;
+            top: -3px;
+            width: 6px;
+            height: 6px;
+            background-color: var(--accent-primary);
+        }
+
+        .fx-cursor.is-hidden,
+        .fx-cursor-dot.is-hidden { opacity: 0; }
+
+        .fx-burst {
+            position: fixed;
+            z-index: 100000;
+            width: 10px;
+            height: 10px;
+            margin: -5px 0 0 -5px;
+            border: 2px solid var(--accent-hover);
+            pointer-events: none;
+            animation: fx-burst 0.55s cubic-bezier(.2,.8,.2,1) forwards;
+        }
+
+        @keyframes fx-burst {
+            to { transform: scale(7) rotate(90deg); opacity: 0; border-width: 1px; }
+        }
+
+        /* --- THEME SWITCH GLITCH --- */
+        .fx-glitch {
+            position: fixed;
+            inset: 0;
+            z-index: 99995;
+            pointer-events: none;
+            opacity: 0;
+            background:
+                repeating-linear-gradient(to bottom, var(--accent-primary) 0 3px, transparent 3px 11px),
+                linear-gradient(90deg, var(--accent-hover), transparent 40%, var(--accent-primary));
+            mix-blend-mode: screen;
+        }
+
+        .fx-glitch.is-on { animation: fx-glitch 0.5s steps(1) forwards; }
+
+        @keyframes fx-glitch {
+            0%   { opacity: 0.55; clip-path: inset(10% 0 70% 0); transform: translateX(-20px); }
+            15%  { opacity: 0.4;  clip-path: inset(55% 0 20% 0); transform: translateX(25px); }
+            30%  { opacity: 0.6;  clip-path: inset(30% 0 45% 0); transform: translateX(-10px); }
+            45%  { opacity: 0.3;  clip-path: inset(80% 0 5% 0);  transform: translateX(14px); }
+            60%  { opacity: 0.45; clip-path: inset(0 0 85% 0);   transform: translateX(-6px); }
+            80%  { opacity: 0.2;  clip-path: inset(40% 0 40% 0); transform: none; }
+            100% { opacity: 0; }
+        }
+
+        main.fx-shake { animation: fx-shake 0.4s steps(2); }
+        @keyframes fx-shake {
+            0%, 100% { translate: 0 0; }
+            25% { translate: -4px 2px; }
+            50% { translate: 3px -2px; }
+            75% { translate: -2px -1px; }
+        }
+
+        /* --- BRAND CURSOR BLINK --- */
+        .fx .brand-dot { animation: fx-blink 1s steps(1) infinite; }
+        @keyframes fx-blink { 50% { opacity: 0; } }
+
+        /* --- SECTION REVEALS --- */
+        /* Hidden state must not use clip-path: IntersectionObserver would see a zero-area target */
+        .fx .fade-on-scroll {
+            opacity: 0;
+            translate: 0 60px;
+            transition:
+                opacity 0.8s cubic-bezier(.2,.7,.2,1) var(--reveal-delay, 0s),
+                translate 1s cubic-bezier(.2,.7,.2,1) var(--reveal-delay, 0s),
+                transform 0.25s ease-out,
+                border-color 0.2s,
+                box-shadow 0.2s;
+        }
+
+        .fx .fade-on-scroll.is-visible {
             opacity: 1;
-            transform: translateY(0);
+            translate: 0 0;
+            animation: fx-wipe 1.2s cubic-bezier(.77,0,.18,1) var(--reveal-delay, 0s) backwards;
+        }
+
+        @keyframes fx-wipe {
+            from { clip-path: inset(-40px -40px 100% -40px); }
+            to   { clip-path: inset(-40px -40px -40px -40px); }
+        }
+
+        /* Hero is animated by its own intro + scroll-out, not the generic reveal */
+        .fx .hero .fade-on-scroll { translate: none; opacity: 1; transition: none; animation: none; }
+
+        /* Scan beam sweeping down each panel as it boots in */
+        .fx .tui-panel.fade-on-scroll::before {
+            content: '';
+            position: absolute;
+            left: -1px;
+            right: -1px;
+            top: 0;
+            height: 2px;
+            background-color: var(--accent-primary);
+            box-shadow: 0 0 18px 2px var(--accent-primary);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .fx .tui-panel.fade-on-scroll.is-visible::before {
+            animation: fx-scan 1.2s cubic-bezier(.77,0,.18,1) var(--reveal-delay, 0s) forwards;
+        }
+
+        @keyframes fx-scan {
+            0%   { top: 0; opacity: 1; }
+            85%  { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Spotlight that follows the pointer across panels */
+        .fx .tui-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), var(--accent-glow), transparent 65%);
+            opacity: 0;
+            transition: opacity 0.35s ease;
+            mix-blend-mode: screen;
+        }
+
+        .fx .tui-panel:hover::after { opacity: 1; }
+
+        /* Element-level reveals inside long panels */
+        .fx .fx-r {
+            opacity: 0;
+            translate: 0 28px;
+            transition:
+                opacity 0.7s ease var(--reveal-delay, 0s),
+                translate 0.8s cubic-bezier(.2,.7,.2,1) var(--reveal-delay, 0s),
+                transform 0.3s ease,
+                border-color 0.2s,
+                box-shadow 0.2s,
+                color 0.2s;
+        }
+
+        .fx .fx-r--left { translate: -32px 0; }
+        .fx .fx-r--img { translate: none; }
+        .fx .fx-r.is-in { opacity: 1; translate: 0 0; }
+        .fx .fx-r--img.is-in { translate: none; animation: fx-wipe 1s cubic-bezier(.77,0,.18,1) var(--reveal-delay, 0s) backwards; }
+
+        /* Velocity-driven chromatic split on headings */
+        .fx .section-title {
+            text-shadow:
+                calc(var(--fx-vel, 0) * 1px) 0 0 color-mix(in srgb, var(--accent-hover) 70%, transparent),
+                calc(var(--fx-vel, 0) * -1px) 0 0 rgba(0, 255, 255, 0.55),
+                0 0 8px var(--accent-glow);
+        }
+
+        /* --- HERO INTRO --- */
+        .fx:not(.fx-pre-intro) .ascii-char {
+            transition:
+                translate 1.1s cubic-bezier(.2,.8,.2,1) var(--d, 0s),
+                opacity 0.5s ease var(--d, 0s),
+                transform 0.15s ease,
+                color 0.15s ease,
+                text-shadow 0.15s ease;
+        }
+
+        .fx-pre-intro .ascii-char { opacity: 0; translate: var(--dx, 0) var(--dy, 0); }
+
+        .fx .ascii-container { will-change: transform; }
+        .fx .ascii-row { will-change: translate; }
+
+        .fx-word {
+            display: inline-block;
+            transition:
+                opacity 0.6s ease calc(var(--i) * 30ms + 0.9s),
+                translate 0.7s cubic-bezier(.2,.8,.2,1) calc(var(--i) * 30ms + 0.9s),
+                filter 0.7s ease calc(var(--i) * 30ms + 0.9s);
+        }
+
+        .fx-pre-intro .fx-word { opacity: 0; translate: 0 0.7em; filter: blur(8px); }
+
+        .fx-pre-intro .hero .container { visibility: hidden; }
+        .fx:not(.fx-pre-intro) .hero-ctas .btn { animation: fx-rise 0.8s cubic-bezier(.2,.8,.2,1) backwards; }
+        .fx:not(.fx-pre-intro) .hero-ctas .btn:nth-child(1) { animation-delay: 1.5s; }
+        .fx:not(.fx-pre-intro) .hero-ctas .btn:nth-child(2) { animation-delay: 1.65s; }
+        @keyframes fx-rise { from { opacity: 0; translate: 0 28px; } }
+
+        .fx-status::after {
+            content: '█';
+            margin-left: 0.25rem;
+            color: var(--accent-primary);
+            animation: fx-blink 1s steps(1) infinite;
+        }
+
+        .fx-pre-intro .fx-status { visibility: hidden; }
+
+        .fx-caret {
+            display: inline-block;
+            width: 0.6em;
+            height: 1.1em;
+            vertical-align: text-bottom;
+            background-color: var(--accent-primary);
+            animation: fx-blink 0.8s steps(1) infinite;
+        }
+
+        /* --- MAGNETIC BUTTONS & MODAL --- */
+        .fx .btn,
+        .fx .theme-switcher-btn {
+            transition: color 0.2s steps(4), border-color 0.2s steps(4), box-shadow 0.2s steps(4), background-color 0.2s steps(4), transform 0.2s steps(4), translate 0.25s ease-out;
+        }
+
+        .fx .retro-modal { animation: fx-fade-in 0.25s ease; }
+        .fx .retro-modal__content { animation: fx-crt-on 0.45s cubic-bezier(.2,.8,.2,1); }
+
+        @keyframes fx-fade-in { from { opacity: 0; } }
+        @keyframes fx-crt-on {
+            0%   { clip-path: inset(50% 0 50% 0); filter: brightness(4); }
+            50%  { clip-path: inset(49% 0 49% 0); filter: brightness(2); }
+            100% { clip-path: inset(0 0 0 0); filter: brightness(1); }
         }
     </style>
 </head>
@@ -1465,12 +1936,14 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
 
             function draw() {
                 if (!canvas) return;
+                // FX layer pauses the rain while the hero is offscreen
+                if (window.fxHeroHidden) { requestAnimationFrame(draw); return; }
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.font = `${fontSize}px 'Share Tech Mono', monospace`;
                 ctx.textBaseline = 'top';
 
                 columns.forEach(col => {
-                    col.y += col.speed;
+                    col.y += col.speed * (window.fxRainBoost || 1); // FX layer: rain accelerates with scroll velocity
                     if (col.y > canvas.height) {
                         col.y = -col.maxLength * fontSize;
                         col.speed = 0.5 + Math.random() * 1.5;
@@ -1596,10 +2069,14 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
                         const elementPosition = targetElement.getBoundingClientRect().top;
                         const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
-                        window.scrollTo({
-                            top: offsetPosition,
-                            behavior: "smooth"
-                        });
+                        if (window.fxLenis) {
+                            window.fxLenis.scrollTo(targetElement, { offset: -headerOffset });
+                        } else {
+                            window.scrollTo({
+                                top: offsetPosition,
+                                behavior: "smooth"
+                            });
+                        }
                     }
                 });
             });
@@ -1664,5 +2141,558 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
             </div>
         </div>
     </div>
+
+    <!-- Lenis smooth scrolling -->
+    <script src="https://unpkg.com/lenis@1.3.11/dist/lenis.min.js"></script>
+
+    <!-- JavaScript - FX Layer: boot sequence, smooth scroll, reveals, cursor, parallax -->
+    <script>
+        // Registered after the main script's DOMContentLoaded handler, so the ASCII art and icons already exist
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.documentElement;
+            const motion = root.classList.contains('fx');
+            const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            const lerp = (a, b, t) => a + (b - a) * t;
+            const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+            const SCRAMBLE = '!<>-_\\/[]{}=+*^?#%$@01';
+            const BLOCKS = '█▓▒░▄▀■';
+            const rand = (str) => str[(Math.random() * str.length) | 0];
+
+            function make(tag, className, parent = document.body) {
+                const el = document.createElement(tag);
+                el.className = className;
+                parent.appendChild(el);
+                return el;
+            }
+
+            function accentRgb() {
+                const hex = getComputedStyle(root).getPropertyValue('--accent-primary').trim().replace('#', '');
+                const num = parseInt(hex.length === 3 ? hex.replace(/./g, '$&$&') : hex, 16);
+                return isNaN(num) ? '250,189,47' : `${(num >> 16) & 255},${(num >> 8) & 255},${num & 255}`;
+            }
+
+            // Decrypt-style text reveal; only for text-only elements so markup is never lost
+            function scramble(el, duration = 900) {
+                if (el.children.length) return;
+                const original = el.dataset.fxText || (el.dataset.fxText = el.textContent);
+                cancelAnimationFrame(el._fxScramble);
+                const start = performance.now();
+                const step = (now) => {
+                    const t = clamp((now - start) / duration, 0, 1);
+                    const shown = Math.floor(t * original.length);
+                    let out = '';
+                    for (let i = 0; i < original.length; i++) {
+                        const ch = original[i];
+                        out += (i < shown || /\s/.test(ch)) ? ch : rand(SCRAMBLE);
+                    }
+                    el.textContent = out;
+                    if (t < 1) el._fxScramble = requestAnimationFrame(step);
+                    else el.textContent = original;
+                };
+                el._fxScramble = requestAnimationFrame(step);
+            }
+
+            // --- 1. Smooth scrolling ---
+            let lenis = null;
+            if (motion && typeof Lenis !== 'undefined') {
+                lenis = new Lenis({ duration: 1.2, easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+                window.fxLenis = lenis;
+            }
+
+            const scrollToEl = (el) => {
+                if (lenis) lenis.scrollTo(el, { offset: -80 });
+                else window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+            };
+
+            // --- 2. Chrome: progress bar, HUD, side rail (built from the existing nav) ---
+            const header = document.querySelector('.header');
+            const progress = make('div', 'fx-progress', header);
+
+            const sectionLinks = [...document.querySelectorAll('.nav-menu .nav-link')].map((a) => ({
+                id: a.getAttribute('href').slice(1),
+                label: a.textContent.trim(),
+                nav: a
+            }));
+            const contactCta = document.querySelector('.header-actions a[href="#contact"]');
+            if (contactCta) sectionLinks.push({ id: 'contact', label: contactCta.textContent.trim(), nav: null });
+            sectionLinks.forEach((s) => { s.el = document.getElementById(s.id); });
+
+            const rail = make('nav', 'fx-rail');
+            rail.setAttribute('aria-label', 'Section navigation');
+            sectionLinks.forEach((s, i) => {
+                const a = make('a', 'fx-rail__item', rail);
+                a.href = `#${s.id}`;
+                a.innerHTML = `<span class="fx-rail__num">${String(i + 1).padStart(2, '0')}</span><span class="fx-rail__label"></span>`;
+                a.lastChild.textContent = s.label;
+                a.addEventListener('click', (e) => { e.preventDefault(); if (s.el) scrollToEl(s.el); });
+                s.rail = a;
+            });
+
+            const hud = make('div', 'fx-hud');
+            hud.title = 'Back to top';
+            hud.addEventListener('click', () => (lenis ? lenis.scrollTo(0) : window.scrollTo({ top: 0, behavior: 'smooth' })));
+            let hudSection = '--';
+            let hudPct = -1;
+
+            function renderHud(pct) {
+                const filled = Math.round(pct / 10);
+                hud.innerHTML = `<span class="fx-hud__sec">SEC <b>${hudSection}</b>  </span>[<b>${'█'.repeat(filled)}</b>${'░'.repeat(10 - filled)}] ${String(pct).padStart(3, '0')}%`;
+            }
+            renderHud(0);
+
+            // Scrollspy
+            const spy = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    sectionLinks.forEach((s, i) => {
+                        const active = s.el === entry.target;
+                        s.rail.classList.toggle('is-active', active);
+                        if (s.nav) s.nav.classList.toggle('is-active', active);
+                        if (active) {
+                            hudSection = `${String(i + 1).padStart(2, '0')}/${String(sectionLinks.length).padStart(2, '0')}`;
+                            renderHud(Math.max(hudPct, 0));
+                            if (s.nav && motion) scramble(s.nav, 400);
+                        }
+                    });
+                });
+            }, { rootMargin: '-45% 0px -50% 0px' });
+            sectionLinks.forEach((s) => s.el && spy.observe(s.el));
+
+            // Leaving the tracked sections (back in the hero) clears the highlight
+            const heroSection = document.querySelector('.hero');
+            new IntersectionObserver(([entry]) => {
+                if (!entry.isIntersecting) return;
+                sectionLinks.forEach((s) => { s.rail.classList.remove('is-active'); if (s.nav) s.nav.classList.remove('is-active'); });
+                hudSection = '--';
+                renderHud(Math.max(hudPct, 0));
+            }, { rootMargin: '-45% 0px -50% 0px' }).observe(heroSection);
+
+            // Pause hero rain while offscreen
+            new IntersectionObserver(([entry]) => { window.fxHeroHidden = !entry.isIntersecting; }).observe(heroSection);
+
+            if (!motion) {
+                // Reduced motion: keep navigation aids, skip animation
+                const update = () => {
+                    const max = document.documentElement.scrollHeight - window.innerHeight;
+                    const p = max > 0 ? window.scrollY / max : 0;
+                    progress.style.transform = `scaleX(${p})`;
+                    renderHud(Math.round(p * 100));
+                };
+                window.addEventListener('scroll', update, { passive: true });
+                update();
+                return;
+            }
+
+            root.classList.add('fx-ready');
+
+            // --- 3. Atmosphere: CRT overlay, glitch layer, neural background ---
+            make('div', 'fx-crt');
+            const glitch = make('div', 'fx-glitch');
+            const neural = document.createElement('canvas');
+            neural.className = 'fx-neural';
+            document.body.prepend(neural);
+
+            const nctx = neural.getContext('2d');
+            let nW = 0, nH = 0, nodes = [], nodeRgb = accentRgb();
+
+            function resizeNeural() {
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
+                nW = window.innerWidth;
+                nH = window.innerHeight;
+                neural.width = nW * dpr;
+                neural.height = nH * dpr;
+                nctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                const count = Math.round(clamp((nW * nH) / 22000, 24, 80));
+                nodes = Array.from({ length: count }, () => ({
+                    x: Math.random() * nW,
+                    y: Math.random() * nH,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    z: 0.3 + Math.random() * 0.7
+                }));
+            }
+
+            function drawNeural(vel, mx, my) {
+                nctx.clearRect(0, 0, nW, nH);
+                const link = 140;
+                for (const n of nodes) {
+                    n.x += n.vx;
+                    n.y += n.vy - vel * n.z * 0.4;
+                    const dx = n.x - mx, dy = n.y - my, d = Math.hypot(dx, dy);
+                    if (d < 120 && d > 0) { n.x += (dx / d) * 1.2; n.y += (dy / d) * 1.2; }
+                    if (n.x < -20) n.x = nW + 20; else if (n.x > nW + 20) n.x = -20;
+                    if (n.y < -20) n.y = nH + 20; else if (n.y > nH + 20) n.y = -20;
+                }
+                for (let i = 0; i < nodes.length; i++) {
+                    const a = nodes[i];
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const b = nodes[j];
+                        const d = Math.hypot(a.x - b.x, a.y - b.y);
+                        if (d < link) {
+                            nctx.strokeStyle = `rgba(${nodeRgb},${(1 - d / link) * 0.35})`;
+                            nctx.beginPath(); nctx.moveTo(a.x, a.y); nctx.lineTo(b.x, b.y); nctx.stroke();
+                        }
+                    }
+                    const dm = Math.hypot(a.x - mx, a.y - my);
+                    if (dm < 200) {
+                        nctx.strokeStyle = `rgba(${nodeRgb},${(1 - dm / 200) * 0.6})`;
+                        nctx.beginPath(); nctx.moveTo(a.x, a.y); nctx.lineTo(mx, my); nctx.stroke();
+                    }
+                    nctx.fillStyle = `rgba(${nodeRgb},${0.35 + a.z * 0.5})`;
+                    const s = 1 + a.z * 2;
+                    nctx.fillRect(a.x - s / 2, a.y - s / 2, s, s);
+                }
+            }
+
+            resizeNeural();
+            let resizeTimer;
+            window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resizeNeural, 150); });
+
+            // Theme swap: glitch burst + recolour the canvas
+            new MutationObserver(() => {
+                nodeRgb = accentRgb();
+                glitch.classList.remove('is-on');
+                void glitch.offsetWidth;
+                glitch.classList.add('is-on');
+                const main = document.querySelector('main');
+                main.classList.remove('fx-shake');
+                void main.offsetWidth;
+                main.classList.add('fx-shake');
+                document.querySelectorAll('.section-title').forEach((t) => {
+                    if (t.getBoundingClientRect().top < window.innerHeight) scramble(t, 500);
+                });
+            }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+
+            // --- 4. Cursor ---
+            let mouseX = -9999, mouseY = -9999, curX = mouseX, curY = mouseY;
+            let cursor = null, cursorDot = null;
+            if (finePointer) {
+                cursor = make('div', 'fx-cursor is-hidden');
+                cursorDot = make('div', 'fx-cursor-dot is-hidden');
+                const hoverable = 'a, button, input, textarea, select, label, [data-modal-target], .cos1-hero-img, .cos1-gallery-img, .ascii-char, .fx-hud';
+
+                window.addEventListener('pointermove', (e) => {
+                    if (e.pointerType !== 'mouse') return;
+                    if (mouseX === -9999) { curX = e.clientX; curY = e.clientY; }
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                    cursorDot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+                    cursor.classList.remove('is-hidden');
+                    cursorDot.classList.remove('is-hidden');
+                }, { passive: true });
+                document.addEventListener('pointerover', (e) => cursor.classList.toggle('is-hover', !!e.target.closest(hoverable)));
+                document.documentElement.addEventListener('mouseleave', () => {
+                    cursor.classList.add('is-hidden');
+                    cursorDot.classList.add('is-hidden');
+                });
+                window.addEventListener('pointerdown', (e) => {
+                    cursor.classList.add('is-down');
+                    const burst = make('div', 'fx-burst');
+                    burst.style.left = `${e.clientX}px`;
+                    burst.style.top = `${e.clientY}px`;
+                    burst.addEventListener('animationend', () => burst.remove());
+                });
+                window.addEventListener('pointerup', () => cursor.classList.remove('is-down'));
+            }
+
+            // --- 5. Panels: spotlight, 3D tilt, magnetic buttons ---
+            document.querySelectorAll('.tui-panel').forEach((panel) => {
+                panel.addEventListener('pointermove', (e) => {
+                    const r = panel.getBoundingClientRect();
+                    panel.style.setProperty('--mx', `${e.clientX - r.left}px`);
+                    panel.style.setProperty('--my', `${e.clientY - r.top}px`);
+                });
+            });
+
+            if (finePointer) {
+                document.querySelectorAll('.service-panel, .project-panel').forEach((panel) => {
+                    panel.addEventListener('pointermove', (e) => {
+                        const r = panel.getBoundingClientRect();
+                        const x = (e.clientX - r.left) / r.width - 0.5;
+                        const y = (e.clientY - r.top) / r.height - 0.5;
+                        panel.style.transform = `perspective(900px) rotateX(${-y * 9}deg) rotateY(${x * 11}deg)`;
+                    });
+                    panel.addEventListener('pointerleave', () => { panel.style.transform = ''; });
+                });
+
+                document.querySelectorAll('.btn:not(.btn--full), .theme-switcher-btn').forEach((btn) => {
+                    btn.addEventListener('pointermove', (e) => {
+                        const r = btn.getBoundingClientRect();
+                        btn.style.translate = `${(e.clientX - r.left - r.width / 2) * 0.3}px ${(e.clientY - r.top - r.height / 2) * 0.4}px`;
+                    });
+                    btn.addEventListener('pointerleave', () => { btn.style.translate = ''; });
+                });
+
+                document.querySelectorAll('.nav-link').forEach((link) => {
+                    link.addEventListener('pointerenter', () => scramble(link, 350));
+                });
+            }
+
+            // --- 6. Scroll reveals ---
+            // Stagger sibling panels inside grids
+            document.querySelectorAll('.services-grid, .project-grid').forEach((grid) => {
+                [...grid.children].forEach((child, i) => child.style.setProperty('--reveal-delay', `${i * 0.14}s`));
+            });
+
+            // Element-level reveals for the long content panels
+            const tag = (selector, variant) => document.querySelectorAll(selector).forEach((el) => {
+                el.classList.add('fx-r');
+                if (variant) el.classList.add(variant);
+            });
+            tag('#cos1 .tui-panel > div > *:not(.cos1-gallery)');
+            tag('#cos1 .cos1-gallery-img', 'fx-r--img');
+            tag('.plugin-info > *:not(ul)');
+            tag('.plugin-info .skill-item', 'fx-r--left');
+            tag('.plugin-img-container', 'fx-r--img');
+            tag('#plugin-release .tui-panel > h4, #plugin-release .tui-panel > div:last-child > *');
+            tag('.dossier-image-box', 'fx-r--img');
+            tag('.about-content > *:not(.about-details), .detail-item');
+            tag('.contact-form > *, .contact-form .form-row > *');
+
+            // Siblings entering together cascade instead of popping at once
+            document.querySelectorAll('.fx-r').forEach((el) => {
+                const siblings = [...el.parentElement.children].filter((c) => c.classList.contains('fx-r'));
+                const idx = siblings.indexOf(el);
+                const inCos1Flow = el.parentElement.matches('#cos1 .tui-panel > div');
+                if (siblings.length > 1 && !inCos1Flow) {
+                    el.style.setProperty('--reveal-delay', `${Math.min(idx, 6) * 0.09}s`);
+                }
+            });
+
+            const revealObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    entry.target.classList.add('is-in');
+                    revealObserver.unobserve(entry.target);
+                });
+            }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+            document.querySelectorAll('.fx-r').forEach((el) => revealObserver.observe(el));
+
+            // Section titles and panel tabs decrypt as they arrive
+            const decodeObserver = new IntersectionObserver((entries) => {
+                entries.forEach((entry) => {
+                    if (!entry.isIntersecting) return;
+                    const el = entry.target;
+                    setTimeout(() => scramble(el, el.classList.contains('section-title') ? 1000 : 700), el.classList.contains('tui-panel__header') ? 250 : 0);
+                    decodeObserver.unobserve(el);
+                });
+            }, { threshold: 0.6 });
+            document.querySelectorAll('main .section-title, main .tui-panel__header').forEach((el) => decodeObserver.observe(el));
+
+            // Install command types itself out
+            const term = document.querySelector('.terminal-prompt-box');
+            if (term) {
+                const full = term.textContent;
+                const cmd = full.trim();
+                term.style.minHeight = `${term.offsetHeight}px`;
+                term.setAttribute('aria-label', cmd);
+                term.textContent = '';
+                const termObserver = new IntersectionObserver(([entry]) => {
+                    if (!entry.isIntersecting) return;
+                    termObserver.disconnect();
+                    const text = document.createTextNode('');
+                    const caret = document.createElement('span');
+                    caret.className = 'fx-caret';
+                    term.append(text, caret);
+                    let i = 0;
+                    const type = () => {
+                        text.data = cmd.slice(0, ++i);
+                        if (i < cmd.length) setTimeout(type, i < 2 ? 250 : 14 + Math.random() * 22);
+                        else setTimeout(() => { term.textContent = full; term.style.minHeight = ''; }, 1200);
+                    };
+                    setTimeout(type, 500);
+                }, { threshold: 0.8 });
+                termObserver.observe(term);
+            }
+
+            // --- 7. Hero intro ---
+            const asciiContainer = document.getElementById('asciiContainer');
+            const asciiRows = [...asciiContainer.querySelectorAll('.ascii-row')];
+            const asciiChars = [...asciiContainer.querySelectorAll('.ascii-char')];
+            const heroContent = heroSection.querySelector('.container');
+            const heroCanvas = document.getElementById('heroAsciiCanvas');
+
+            asciiChars.forEach((c) => {
+                const delay = Math.random() * 0.8;
+                c.dataset.ch = c.textContent;
+                c._fxResolve = delay * 1000 + 450;
+                c.style.setProperty('--d', `${delay}s`);
+                c.style.setProperty('--dx', `${(Math.random() - 0.5) * 420}px`);
+                c.style.setProperty('--dy', `${(Math.random() - 0.5) * 260}px`);
+            });
+
+            const heroTitle = heroSection.querySelector('h2');
+            const words = heroTitle.textContent.trim().split(/\s+/);
+            heroTitle.textContent = '';
+            words.forEach((w, i) => {
+                const span = make('span', 'fx-word', heroTitle);
+                span.style.setProperty('--i', i);
+                span.textContent = w;
+                if (i < words.length - 1) heroTitle.append(' ');
+            });
+
+            const status = heroContent.firstElementChild;
+            const statusText = status.textContent.trim();
+            status.classList.add('fx-status');
+
+            function runIntro() {
+                requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('fx-pre-intro')));
+
+                const start = performance.now();
+                const decode = () => {
+                    const t = performance.now() - start;
+                    let pending = false;
+                    asciiChars.forEach((c) => {
+                        if (t < c._fxResolve) {
+                            pending = true;
+                            if (Math.random() < 0.6) c.textContent = rand(BLOCKS);
+                        } else if (c.textContent !== c.dataset.ch) {
+                            c.textContent = c.dataset.ch;
+                        }
+                    });
+                    if (pending) setTimeout(decode, 45);
+                };
+                decode();
+
+                status.textContent = '';
+                let i = 0;
+                const type = () => {
+                    status.textContent = statusText.slice(0, ++i);
+                    if (i < statusText.length) setTimeout(type, 28);
+                };
+                setTimeout(type, 200);
+            }
+
+            // --- 8. Boot sequence (first visit per session) ---
+            function runBoot(done) {
+                if (!root.classList.contains('fx-booting')) return done();
+                if (lenis) lenis.stop();
+
+                const boot = make('div', 'fx-boot');
+                boot.setAttribute('aria-hidden', 'true');
+                boot.innerHTML = '<div class="fx-boot__screen"><pre class="fx-boot__log"></pre><div class="fx-boot__bar"><span></span></div><div class="fx-boot__hint">[ PRESS ANY KEY TO SKIP ]</div></div>';
+                const log = boot.querySelector('.fx-boot__log');
+                const bar = boot.querySelector('.fx-boot__bar span');
+
+                const lines = [
+                    'FILIPE-DEV BIOS v26.09 (C) 2026',
+                    'CPU: AGENTIC CORE ............ <span class="ok">OK</span>',
+                    'MEM: STATEFUL MEMORY LOOPS ... <span class="ok">OK</span>',
+                    ...document.querySelectorAll('main .section-title')
+                ].map((l) => (typeof l === 'string' ? l : `[ <span class="ok">OK</span> ] Mounted ${l.textContent.trim()}`));
+                lines.push('', '&gt; LAUNCHING INTERFACE_');
+
+                let finished = false;
+                const timers = [];
+                const finish = () => {
+                    if (finished) return;
+                    finished = true;
+                    timers.forEach(clearTimeout);
+                    bar.style.width = '100%';
+                    try { sessionStorage.setItem('fx-booted', '1'); } catch (e) {}
+                    ['keydown', 'pointerdown', 'wheel', 'touchstart'].forEach((ev) => window.removeEventListener(ev, finish));
+                    setTimeout(() => {
+                        boot.classList.add('is-off');
+                        root.classList.remove('fx-booting');
+                        if (lenis) lenis.start();
+                        done();
+                        setTimeout(() => boot.remove(), 700);
+                    }, 180);
+                };
+
+                lines.forEach((line, i) => {
+                    timers.push(setTimeout(() => {
+                        log.innerHTML += `${line}\n`;
+                        bar.style.width = `${((i + 1) / lines.length) * 100}%`;
+                    }, 120 + i * 150 + (i > 2 ? 120 : 0)));
+                });
+                timers.push(setTimeout(finish, 120 + lines.length * 150 + 450));
+                ['keydown', 'pointerdown', 'wheel', 'touchstart'].forEach((ev) => window.addEventListener(ev, finish, { passive: true }));
+            }
+
+            // --- 9. Frame loop: scroll physics, hero scroll-out, parallax, cursor ---
+            const parallaxImgs = [...document.querySelectorAll('.cos1-hero-img, .dossier-image-box')];
+            let lastY = window.scrollY, vel = 0, lastVelVar = 0;
+            let tiltX = 0, tiltY = 0;
+
+            let heroHeight = heroSection.offsetHeight;
+            let docMax = document.documentElement.scrollHeight - window.innerHeight;
+            const measure = () => {
+                heroHeight = heroSection.offsetHeight;
+                docMax = document.documentElement.scrollHeight - window.innerHeight;
+            };
+            window.addEventListener('resize', measure);
+            window.addEventListener('load', measure);
+            new ResizeObserver(measure).observe(document.body);
+
+            function frame(time) {
+                if (lenis) lenis.raf(time);
+
+                // Reads first (avoid layout thrash) ...
+                const y = window.scrollY;
+                const vh = window.innerHeight;
+                const imgRects = parallaxImgs.map((img) => img.getBoundingClientRect());
+                vel = lerp(vel, y - lastY, 0.18);
+                lastY = y;
+
+                // ... then writes. Progress + HUD
+                const p = docMax > 0 ? clamp(y / docMax, 0, 1) : 0;
+                progress.style.transform = `scaleX(${p})`;
+                const pct = Math.round(p * 100);
+                if (pct !== hudPct) { hudPct = pct; renderHud(pct); }
+
+                // Velocity → heading chroma + rain speed
+                const velVar = Math.round(clamp(vel * 0.25, -6, 6) * 10) / 10;
+                if (velVar !== lastVelVar) { root.style.setProperty('--fx-vel', velVar); lastVelVar = velVar; }
+                window.fxRainBoost = 1 + Math.min(Math.abs(vel) * 0.12, 6);
+
+                // Hero scroll-out: content drifts and dissolves, ASCII rows shear apart
+                if (!window.fxHeroHidden) {
+                    const hp = clamp(y / heroHeight, 0, 1);
+                    heroContent.style.translate = `0 ${hp * 160}px`;
+                    heroContent.style.opacity = hp > 0.001 ? String(1 - hp * 1.15) : '';
+                    heroContent.style.filter = hp > 0.001 ? `blur(${hp * 6}px)` : '';
+                    asciiRows.forEach((row, i) => { row.style.translate = `${(i % 2 ? -1 : 1) * hp * (80 + i * 30)}px 0`; });
+                    heroCanvas.style.opacity = String(0.12 + hp * 0.35);
+
+                    // ASCII name leans toward the pointer
+                    const tx = mouseX === -9999 ? 0 : (mouseY / vh - 0.5) * -14;
+                    const ty = mouseX === -9999 ? 0 : (mouseX / window.innerWidth - 0.5) * 18;
+                    tiltX = lerp(tiltX, tx, 0.08);
+                    tiltY = lerp(tiltY, ty, 0.08);
+                    asciiContainer.style.transform = `perspective(700px) rotateX(${tiltX.toFixed(2)}deg) rotateY(${tiltY.toFixed(2)}deg)`;
+                }
+
+                // Image parallax (uses `translate` so hover `transform` still works)
+                parallaxImgs.forEach((img, i) => {
+                    const r = imgRects[i];
+                    if (r.bottom < -100 || r.top > vh + 100) return;
+                    const current = parseFloat((img.style.translate || '0 0').split(' ')[1]) || 0;
+                    const offset = (r.top - current + r.height / 2 - vh / 2) * -0.045;
+                    img.style.translate = `0 ${offset.toFixed(1)}px`;
+                });
+
+                // Cursor follower
+                if (cursor && mouseX !== -9999) {
+                    curX = lerp(curX, mouseX, 0.2);
+                    curY = lerp(curY, mouseY, 0.2);
+                    cursor.style.transform = `translate(${curX}px, ${curY}px)`;
+                }
+
+                drawNeural(clamp(vel, -40, 40), mouseX, mouseY);
+                requestAnimationFrame(frame);
+            }
+
+            // Keep Lenis paused while the lightbox is open
+            const modal = document.getElementById('retroModal');
+            new MutationObserver(() => {
+                if (!lenis) return;
+                if (modal.style.display === 'flex') lenis.stop(); else lenis.start();
+            }).observe(modal, { attributes: true, attributeFilter: ['style'] });
+
+            requestAnimationFrame(frame);
+            runBoot(runIntro);
+        });
+    </script>
 </body>
 </html>
