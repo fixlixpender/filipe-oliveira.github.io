@@ -32,7 +32,7 @@
     <style>
         /* --- CSS VARIABLES & THEMES (Omarchy Inspired) --- */
         :root {
-            /* --- Gruvbox (Default) --- */
+            /* --- Sandbox (Default) --- */
             --bg-main: #1d2021;
             --bg-card: #282828;
             --border-color: #3c3836;
@@ -66,8 +66,8 @@
             --shadow-hover: 0 0 20px rgba(255, 0, 127, 0.25);
         }
 
-        [data-theme="hackerman"] {
-            /* --- Hackerman Green --- */
+        [data-theme="trinity"] {
+            /* --- Trinity Green --- */
             --bg-main: #070b08;
             --bg-card: #0c120e;
             --border-color: #123019;
@@ -1499,9 +1499,9 @@
             </nav>
 
             <div class="header-actions">
-                <!-- Theme Switcher Cycles: Gruvbox -> Synthwave -> Hackerman -->
+                <!-- Theme Switcher Cycles: Sandbox -> Synthwave -> Trinity -->
                 <button id="themeSwitcherBtn" class="theme-switcher-btn">
-                    [ <span class="hide-mobile">THEME:</span> GRUVBOX ]
+                    [ <span class="hide-mobile">THEME:</span> SANDBOX ]
                 </button>
                 <a href="#contact" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.95rem;">LET'S_TALK</a>
             </div>
@@ -1978,7 +1978,7 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
             const ctx = canvas.getContext('2d');
             const fontSize = 16;
             let columns = [];
-            let animationColor = '#fabd2f'; // default Gruvbox accent
+            let animationColor = '#fabd2f'; // default Sandbox accent
             
             function updateColors() {
                 const style = getComputedStyle(document.documentElement);
@@ -2079,7 +2079,7 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
 
             // --- 3. Tri-State Retro Theme Selector (Omarchy inspired + 'T' keypress) ---
             const themeBtn = document.getElementById('themeSwitcherBtn');
-            const themes = ['gruvbox', 'synthwave', 'hackerman'];
+            const themes = ['sandbox', 'synthwave', 'trinity'];
             let currentThemeIdx = 0;
 
             // Load saved theme if exists
@@ -2090,7 +2090,7 @@ $ omarchy plugin add https://github.com/fixlixpender/omarchy-bar-color.git --ena
             }
 
             function applyTheme(themeName) {
-                if (themeName === 'gruvbox') {
+                if (themeName === 'sandbox') {
                     document.documentElement.removeAttribute('data-theme');
                 } else {
                     document.documentElement.setAttribute('data-theme', themeName);
